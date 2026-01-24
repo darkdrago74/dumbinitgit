@@ -19,7 +19,7 @@
 GITHUB_TOKEN="TOBEMODIFIED"
 GITHUB_USERNAME="TOBEMODIFIED"
 GITHUB_EMAIL="TOBEMODIFIED"
-REPO_URL="https://github.com/darkdrago74/LzrCnc.git"
+REPO_URL="https://github.com/username/projectname.git"
 INITIALIZED="false" # This will be set to "true" after the first successful init.
 
 # --- SCRIPT LOGIC ---

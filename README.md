@@ -17,14 +17,14 @@ Before running the script for the first time, you need to edit the `CONFIGURATIO
 GITHUB_TOKEN="TOBEMODIFIED"
 GITHUB_USERNAME="TOBEMODIFIED"
 GITHUB_EMAIL="TOBEMODIFIED"
-REPO_URL="https://github.com/darkdrago74/LzrCnc.git"
+REPO_URL="https://github.com/username/projectname.git"
 INITIALIZED="false" # This will be set to "true" after the first successful init.
 ```
 
 1.  **`GITHUB_TOKEN`**: Your GitHub Personal Access Token. This is used to authenticate with GitHub.
 2.  **`GITHUB_USERNAME`**: Your GitHub username.
 3.  **`GITHUB_EMAIL`**: The email address associated with your GitHub account.
-4.  **`REPO_URL`**: The URL of the remote repository you want to link to.
+4.  **`REPO_URL`**: The URL of the remote repository you want to link to (e.g., `https://github.com/your-username/your-repo.git`).
 
 **Note:** For security, the script will remove these credentials from itself after the initial repository setup.
 
