@@ -1,4 +1,4 @@
-#!/bin/bash
+!/bin/bash
 
 # -----------------------------------------------------------------------------
 # dumbinitgit.sh - A git helper script
@@ -16,7 +16,7 @@
 # --- CONFIGURATION ---
 # IMPORTANT: Fill these variables before the first run.
 # After the first initialization, the script will replace these values for security.
-# GITHUB_TOKEN, GITHUB_USERNAME, GITHUB_EMAIL, and REPO_URL must all be enclosed in double quotes. 
+# GITHUB_TOKEN, GITHUB_USERNAME, GITHUB_EMAIL, and REPO_URL must all be enclosed in double quotes.  
 GITHUB_TOKEN="TOBEMODIFIED"
 GITHUB_USERNAME="TOBEMODIFIED"
 GITHUB_EMAIL="TOBEMODIFIED@mail.xyz"
@@ -40,14 +40,6 @@ initialize_repo() {
         exit 1
     fi
 
-    # Check if it's already a git repository
-    if [ -d ".git" ]; then
-        echo "This is already a git repository. Skipping initialization."
-        # Mark as initialized to prevent asking again.
-        sed -i 's/^INITIALIZED=.*/INITIALIZED="true"/' "$0"
-        return
-    fi
-
     # Validate configuration
     if [ "$GITHUB_TOKEN" = "TOBEMODIFIED" ] || [ "$GITHUB_USERNAME" = "TOBEMODIFIED" ] || [ "$GITHUB_EMAIL" = "TOBEMODIFIED" ]; then
         echo "Warning: Credentials are not set in the script."
@@ -63,28 +55,45 @@ initialize_repo() {
         fi
     fi
 
-    echo "Initializing git repository..."
-    git init
-
-    # Add this script to .gitignore to avoid committing it
-    if ! grep -qxF "dumbinitgit.sh" .gitignore; then
-        echo "Adding dumbinitgit.sh to .gitignore..."
-        echo "dumbinitgit.sh" >> .gitignore
+    local is_new_repo=true
+    if [ -d ".git" ]; then
+        is_new_repo=false
     fi
+
+    if [ "$is_new_repo" = true ]; then
+        echo "Initializing new git repository..."
+        git init
+
+        # Add this script to .gitignore to avoid committing it
+        if ! grep -qxF "dumbinitgit.sh" .gitignore; then
+            echo "Adding dumbinitgit.sh to .gitignore..."
+            echo "dumbinitgit.gitattributes" >> .gitignore
+        fi
+    else
+        echo "Existing git repository detected."
+    fi
+
 
     git config user.name "$GITHUB_USERNAME"
     git config user.email "$GITHUB_EMAIL"
-    
-    echo "Adding remote origin..."
-    git remote add origin "https://$GITHUB_TOKEN@$(echo $REPO_URL | sed 's|https://||')"
-    
+
+    echo "Configuring remote origin..."
+    local remote_url="https://$GITHUB_TOKEN@$(echo $REPO_URL | sed 's|https://||')"
+    # Check if remote origin exists
+    if git remote get-url origin > /dev/null 2>&1; then
+        git remote set-url origin "$remote_url"
+    else
+        git remote add origin "$remote_url"
+    fi
+
     echo "Initialization successful."
 
-    # Add all files and make an initial commit
-    git add .
-    git commit -m "Initial commit"
-
-    echo "Initial commit created."
+    if [ "$is_new_repo" = true ]; then
+        # Add all files and make an initial commit
+        git add .
+        git commit -m "Initial commit"
+        echo "Initial commit created."
+    fi
 
     # Clean up sensitive information from the script itself
     echo "Securing script: removing credentials..."
@@ -128,7 +137,7 @@ git_push() {
     fi
 
     local branch
-    if [ "$branch_count" -eq 1 ]; then
+    if [ "$branch" ]; then
         branch=$local_branches
         echo "Only one local branch found: $branch. Pushing to this branch."
     else
