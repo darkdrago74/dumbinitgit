@@ -5,6 +5,10 @@ This script provides a simple, menu-driven interface to perform common Git opera
 ## Prerequisites
 
 Before using this script, you must have `git` installed on your system.
+```bash
+sudo apt-get install -y git
+git clone https://github.com/darkdrago74/dumbinitgit.git
+```
 
 ## Configuration
 
