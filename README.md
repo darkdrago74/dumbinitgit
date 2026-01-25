@@ -14,9 +14,10 @@ Before running the script for the first time, you need to edit the `CONFIGURATIO
 # --- CONFIGURATION ---
 # IMPORTANT: Fill these variables before the first run.
 # After the first initialization, the script will replace these values for security.
+# GITHUB_TOKEN, GITHUB_USERNAME, GITHUB_EMAIL, and REPO_URL must all be enclosed in double quotes. 
 GITHUB_TOKEN="TOBEMODIFIED"
 GITHUB_USERNAME="TOBEMODIFIED"
-GITHUB_EMAIL="TOBEMODIFIED"
+GITHUB_EMAIL="TOBEMODIFIED@mail.xyz"
 REPO_URL="https://github.com/username/projectname.git"
 INITIALIZED="false" # This will be set to "true" after the first successful init.
 ```
