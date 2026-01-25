@@ -97,62 +97,127 @@ initialize_repo() {
     echo "---------------------------------"
 }
 
+# Function to execute a git command and handle errors
+execute_git_command() {
+    error_output=$("$@" 2>&1 >/dev/null)
+    if [ $? -ne 0 ]; then
+        echo -e "\033[1;31mError during operation:\033[0m"
+        echo "$error_output"
+        return 1
+    else
+        echo -e "\033[1;32mOperation successful!\033[0m"
+        return 0
+    fi
+}
+
 # --- MENU FOR GIT OPERATIONS ---
 
 # Function to push changes
 git_push() {
     echo "--- Push changes to GitHub ---"
-    echo "This uploads your locally saved (committed) changes from your RPi to the GitHub project."
-    echo "Example: After testing a change on your RPi, you use this to share it with the remote GitHub project."
-    read -p "Enter the branch to push to (e.g., main): " branch
+    echo "This uploads your locally saved (committed) changes from your RPi for example to the GitHub project."
+    echo "Example: After testing a change on your RPi for example, you use this to share it with the remote GitHub project."
+
+    # Get local branches
+    local_branches=$(git branch | sed 's/^..//')
+    branch_count=$(echo "$local_branches" | wc -l)
+
+    if [ "$branch_count" -eq 0 ]; then
+        echo "No local branches found. Please create a branch and commit some changes first."
+        return
+    fi
+
+    local branch
+    if [ "$branch_count" -eq 1 ]; then
+        branch=$local_branches
+        echo "Only one local branch found: $branch. Pushing to this branch."
+    else
+        echo "Available local branches:"
+        select b in $local_branches; do
+            if [ -n "$b" ]; then
+                branch=$b
+                break
+            else
+                echo "Invalid selection. Please try again."
+            fi
+        done
+    fi
+
     if [ -z "$branch" ]; then
         echo "Branch name cannot be empty."
         return
     fi
-    git push origin "$branch"
+
+    # Execute git push and capture stderr
+    error_output=$(git push origin "$branch" 2>&1 >/dev/null)
+
+    # Check for errors
+    if [ $? -ne 0 ]; then
+        echo -e "\033[1;31mError during push:\033[0m"
+        echo "$error_output"
+
+        # Check for specific 'upstream' error
+        if echo "$error_output" | grep -q "has no upstream branch"; then
+            read -p "The current branch has no upstream branch. Do you want to set it now? (y/n): " choice
+            if [ "$choice" = "y" ] || [ "$choice" = "Y" ]; then
+                echo "Setting upstream and pushing again..."
+                git push --set-upstream origin "$branch"
+                if [ $? -eq 0 ]; then
+                    echo -e "\033[1;32mPush successful!\033[0m"
+                else
+                    echo -e "\033[1;31mFailed to push even after setting upstream. Please check the errors above.\033[0m"
+                fi
+            fi
+        fi
+    else
+        echo -e "\033[1;32mPush successful!\033[0m"
+    fi
 }
 
 # Function to commit changes
 git_commit() {
     echo "--- Commit (save) changes locally ---"
-    echo "This saves a snapshot of your current changes on your RPi. Think of it as creating a local save point."
+    echo "This saves a snapshot of your current changes on your RPi for example. Think of it as creating a local save point."
     echo -e "\033[1;33mImportant: After you commit, you must use 'Push' to upload your local save to the GitHub project.\033[0m"
     read -p "Enter your commit message (e.g., 'Added new sensor reading code'): " msg
     if [ -z "$msg" ]; then
         echo "Commit message cannot be empty."
         return
     fi
+    # Add all files except the script itself
     git add .
-    git commit -m "$msg"
+    git reset --quiet HEAD -- dumbinitgit.sh
+    execute_git_command git commit -m "$msg"
 }
 
 # Function to fetch changes
 git_fetch() {
     echo "--- Fetch changes from GitHub ---"
-    echo "This downloads the latest project history from the remote GitHub project to your local RPi, but doesn't change your files yet."
-    echo "It's like checking for mail without opening it. 'Remote' is the GitHub project, 'local' is your RPi."
-    git fetch --all
-    echo "Branches available on remote:"
-    git branch -r
+    echo "This downloads the latest project history from the remote GitHub project to your local RPi for example, but doesn't change your files yet."
+    echo "It's like checking for mail without opening it. 'Remote' is the GitHub project, 'local' is your RPi for example."
+    if execute_git_command git fetch --all; then
+        echo "Branches available on remote:"
+        git branch -r
+    fi
 }
 
 # Function to pull (fetch and merge) changes
 git_pull() {
     echo "--- Pull (update) from GitHub ---"
-    echo "This downloads the latest changes from the GitHub project and automatically merges them into your current working files on your RPi."
+    echo "This downloads the latest changes from the GitHub project and automatically merges them into your current working files on your RPi for example."
     echo "Use this to get the latest version of the project from GitHub."
     read -p "Enter the branch to pull from (e.g., main): " branch
     if [ -z "$branch" ]; then
         echo "Branch name cannot be empty."
         return
     fi
-    git pull origin "$branch"
+    execute_git_command git pull origin "$branch"
 }
 
 # Function to list branches
 list_branches() {
     echo "--- List all branches ---"
-    echo "This shows all versions of the project, both locally on your RPi and remotely on the GitHub project."
+    echo "This shows all versions of the project, both locally on your RPi for example and remotely on the GitHub project."
     echo "Local branches:"
     git branch
     echo ""
@@ -163,13 +228,13 @@ list_branches() {
 # Function to create a new branch
 create_branch() {
     echo "--- Create a new branch ---"
-    echo "Creates a new branch on your local RPi and switches to it. Branches let you work on new features without affecting the main version."
+    echo "Creates a new branch on your local RPi for example and switches to it. Branches let you work on new features without affecting the main version."
     read -p "Enter the name for the new branch: " branch
     if [ -z "$branch" ]; then
         echo "Branch name cannot be empty."
         return
     fi
-    git checkout -b "$branch"
+    execute_git_command git checkout -b "$branch"
 }
 
 # Function to switch branch
@@ -181,13 +246,13 @@ switch_branch() {
         echo "Branch name cannot be empty."
         return
     fi
-    git checkout "$branch"
+    execute_git_command git checkout "$branch"
 }
 
 # Function to reset local changes
 git_reset_hard() {
     echo "--- DANGEROUS: reset_hard ---"
-    echo -e "\033[1;31mWARNING: This will permanently delete ALL local changes on your RPi that you have not pushed to the GitHub project.\033[0m"
+    echo -e "\033[1;31mWARNING: This will permanently delete ALL local changes on your RPi for example that you have not pushed to the GitHub project.\033[0m"
     echo "It resets your local folder to be an exact copy of the GitHub project's branch."
     read -p "Are you absolutely sure you want to do this? (yes/no): " confirmation
     if [ "$confirmation" != "yes" ]; then
@@ -199,9 +264,58 @@ git_reset_hard() {
         echo "Branch name cannot be empty."
         return
     fi
-    git fetch origin # Make sure we have the latest info
-    git reset --hard "origin/$branch"
-    echo "Local folder has been reset."
+    if execute_git_command git fetch origin; then
+        execute_git_command git reset --hard "origin/$branch"
+        echo "Local folder has been reset."
+    fi
+}
+
+
+# Function to manage Git LFS
+manage_git_lfs() {
+    while true; do
+        echo ""
+        echo "--- Git LFS Management ---"
+        echo "1. Track a file type (e.g., *.zip)"
+        echo "2. Untrack a file type"
+        echo "3. List tracked file types"
+        echo "b. Back to Main Menu"
+        echo "--------------------------"
+        read -p "Choose an option: " choice
+
+        case $choice in
+            1)
+                read -p "Enter file pattern to track (e.g., '*.zip', '*.mp4'): " pattern
+                if [ -z "$pattern" ]; then
+                    echo "Pattern cannot be empty."
+                else
+                    execute_git_command git lfs track "$pattern"
+                fi
+                ;;
+            2)
+                read -p "Enter file pattern to untrack: " pattern
+                if [ -z "$pattern" ]; then
+                    echo "Pattern cannot be empty."
+                else
+                    execute_git_command git lfs untrack "$pattern"
+                fi
+                ;;
+            3)
+                echo "--- Currently tracked Git LFS file types (from .gitattributes) ---"
+                if [ -f .gitattributes ]; then
+                    grep "filter=lfs" .gitattributes
+                else
+                    echo "No .gitattributes file found or no LFS patterns tracked."
+                fi
+                ;;
+            b)
+                break
+                ;;
+            *)
+                echo "Invalid option. Please try again."
+                ;;
+        esac
+    done
 }
 
 # Main menu function
@@ -211,10 +325,10 @@ show_menu() {
         echo "--- DumbInitGit Menu ---"
         echo "Workflow: 1. Commit -> 2. Push"
         echo "-----------------------------------------------------"
-        echo "1. Commit (save changes on your RPi)"
+        echo "1. Commit (save changes on your RPi for example)"
         echo "2. Push (upload your RPi's changes to GitHub project)"
         echo ""
-        echo "3. Pull (update your RPi with the latest from GitHub project)"
+        echo "3. Pull (update your RPi for example with the latest from GitHub project)"
         echo "4. Fetch (check for remote changes without merging)"
         echo ""
         echo "5. List Branches"
@@ -222,6 +336,7 @@ show_menu() {
         echo "7. Switch Branch"
         echo ""
         echo "8. DANGEROUS: reset_hard (Reset RPi folder to match GitHub)"
+        echo "9. Manage Git LFS (Large File Storage)"
         echo "q. Quit"
         echo "--------------------"
         read -p "Choose an option: " choice
@@ -235,6 +350,7 @@ show_menu() {
             6) create_branch ;;
             7) switch_branch ;;
             8) git_reset_hard ;;
+            9) manage_git_lfs ;;
             q) echo "Exiting dumbinitgit. Goodbye!"; exit 0 ;;
             *) echo "Invalid option. Please try again." ;;
         esac
