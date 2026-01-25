@@ -70,3 +70,13 @@ After initialization, the script displays a menu with the following options:
 *   **7. Switch Branch**: Switches to a different existing local branch.
 *   **8. DANGEROUS: reset_hard (Reset RPi folder to match GitHub)**: This is a dangerous option that will discard all your local changes and reset your current branch to match the state of the remote branch. Use with extreme caution.
 *   **q. Quit**: Exits the script.
+
+#Note to myself to install Gemini on a RPi
+install nodejs 24 (64bit OS bookworm or trixie) or nodejs20 for 32bit OS on the RPi (replace 24.x by 20.x in the next command line)
+```bash
+curl -fsSL https://deb.nodesource.com/setup_24.x | sudo -E bash - && sudo apt-get install -y nodejs
+```
+Then Gemini install with npm
+```bash
+sudo npm install -g @google/gemini-cli
+```
