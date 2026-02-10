@@ -7,7 +7,7 @@ REM After the first initialization, the script will replace these values for sec
 set "GITHUB_TOKEN=TOBEMODIFIED"
 set "GITHUB_USERNAME=TOBEMODIFIED"
 set "GITHUB_EMAIL=TOBEMODIFIED"
-set "REPO_URL=https://github.com/darkdrago74/LzrCnc.git"
+set "REPO_URL=url of the project on github"
 set "INITIALIZED=false"
 
 REM --- SCRIPT LOGIC ---
@@ -209,3 +209,4 @@ goto menu
 
 :end
 endlocal
+
