@@ -112,10 +112,15 @@ if %errorlevel% neq 0 (
 
 REM Secure the script (Self-modification)
 echo Securing script: removing credentials...
-powershell -Command "(Get-Content '%~f0') -replace 'set \"GITHUB_TOKEN=.*\"', 'set \"GITHUB_TOKEN=AlreadyInit\"' | Set-Content '%~f0'"
-powershell -Command "(Get-Content '%~f0') -replace 'set \"GITHUB_USERNAME=.*\"', 'set \"GITHUB_USERNAME=AlreadyInit\"' | Set-Content '%~f0'"
-powershell -Command "(Get-Content '%~f0') -replace 'set \"GITHUB_EMAIL=.*\"', 'set \"GITHUB_EMAIL=AlreadyInit\"' | Set-Content '%~f0'"
-powershell -Command "(Get-Content '%~f0') -replace 'set \"INITIALIZED=.*\"', 'set \"INITIALIZED=true\"' | Set-Content '%~f0'"
+echo $path = '%~f0' > "%temp%\secure.ps1"
+echo $content = Get-Content $path >> "%temp%\secure.ps1"
+echo $content = $content -replace 'set "GITHUB_TOKEN=.*"', 'set "GITHUB_TOKEN=AlreadyInit"' >> "%temp%\secure.ps1"
+echo $content = $content -replace 'set "GITHUB_USERNAME=.*"', 'set "GITHUB_USERNAME=AlreadyInit"' >> "%temp%\secure.ps1"
+echo $content = $content -replace 'set "GITHUB_EMAIL=.*"', 'set "GITHUB_EMAIL=AlreadyInit"' >> "%temp%\secure.ps1"
+echo $content = $content -replace 'set "INITIALIZED=.*"', 'set "INITIALIZED=true"' >> "%temp%\secure.ps1"
+echo Set-Content -Path $path -Value $content >> "%temp%\secure.ps1"
+powershell -ExecutionPolicy Bypass -File "%temp%\secure.ps1"
+del "%temp%\secure.ps1"
 
 echo Script secured. Credentials have been removed.
 echo ---------------------------------
@@ -209,4 +214,5 @@ goto menu
 
 :end
 endlocal
+
 
